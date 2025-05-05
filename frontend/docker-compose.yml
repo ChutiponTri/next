@@ -1,0 +1,15 @@
+version: "1.1"
+services:
+  housepital:
+    build: .
+    container_name: housepital_front
+    command: ["streamlit", "run", "main.py", "--server.port=8306", "--server.address=0.0.0.0"]
+    volumes:
+      - .:/app
+    ports:
+      - 8306:8306
+    networks:
+      - housepital-networks
+networks:
+  housepital-networks:
+    driver: bridge

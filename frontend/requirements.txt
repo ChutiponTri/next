@@ -1,0 +1,11 @@
+paho-mqtt
+streamlit
+streamlit-autorefresh
+requests
+pandas
+numpy
+matplotlib
+bleak
+langchain
+langchain-google-genai
+dotenv

@@ -1,0 +1,20 @@
+// To Check Docker Version
+docker --verion
+
+// To Build Docker Image
+docker build -t __NAME__ .
+
+// To Check Docker Images
+docker images
+
+// To Check Using Port
+docker ps
+
+// To Create Container
+docker run -d -p 8080:8080 __NAME__
+
+// To Stop Container
+docker stop __CONTAINER_ID__ 
+
+// To Delete Docker Image
+docker rmi -f __IMAGE_ID__

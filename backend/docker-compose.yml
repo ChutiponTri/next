@@ -1,0 +1,64 @@
+version: "3.1"
+services:
+  # Database
+  db:
+    image: mysql
+    container_name: housepital_data
+    environment:
+      MYSQL_ROOT_PASSWORD: Chayawut16
+      MYSQL_USER: etunmide007
+      MYSQL_PASSWORD: Chayawut16
+      MYSQL_DATABASE: tempdb                 # Create the database on startup
+      TZ: "Asia/Bangkok"
+    volumes: 
+      - ./database:/var/lib/database      # This ensures database data is persistent
+    ports: 
+      - 3306:3306
+    networks:
+      - housepital-nets
+    healthcheck:
+      # test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "etunmide007", "-pChayawut16"]
+      test: mysqladmin ping -h localhost -u etunmide007 -p
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  
+  # PHP Myadmin
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: housepital_php
+    depends_on:
+      - db
+    environment:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: Chayawut16
+    ports:
+      - "8888:80"
+    networks:
+      - housepital-nets
+
+  # FastAPI
+  fastapi:
+    build: .
+    container_name: housepital_fast
+    command: ["fastapi", "run", "main.py", "--port", "8305"]
+    volumes:
+      - .:/app          # Maps the current directory to /app inside the container
+    ports:
+      - 8305:8305
+    depends_on:
+      db:
+        condition: service_healthy  # Wait for MySQL to be healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_ROOT: root
+      DB_USER: etunmide007
+      DB_PASSWORD: Chayawut16
+      DB_NAME: tempdb          # Set your actual database name
+    networks:
+      - housepital-nets
+
+networks:
+  housepital-nets:
+    driver: bridge

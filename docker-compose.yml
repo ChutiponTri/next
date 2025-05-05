@@ -1,0 +1,86 @@
+version: "3.2"
+services:
+  # MySQL Database
+  db:
+    image: mysql
+    container_name: housepital_data
+    environment:
+      MYSQL_ROOT_PASSWORD: Chayawut16
+      MYSQL_USER: etunmide007
+      MYSQL_PASSWORD: Chayawut16
+      MYSQL_DATABASE: tempdb                 # Create the database on startup
+      TZ: "Asia/Bangkok"
+    volumes: 
+      - ./mysql/database:/var/lib/database      # This ensures database data is persistent
+    ports: 
+      - 3306:3306
+    networks:
+      - housepital-networks
+    healthcheck:
+      # test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "etunmide007", "-pChayawut16"]
+      test: mysqladmin ping -h localhost -u etunmide007 -p
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  
+  # PHP Myadmin
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: housepital_php
+    depends_on:
+      - db
+    environment:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: Chayawut16
+    ports:
+      - "8888:80"
+    networks:
+      - housepital-networks
+
+  # FastAPI
+  fastapi:
+    build: ./backend
+    container_name: housepital_fast
+    command: ["fastapi", "run", "main.py", "--port", "8305"]
+    volumes:
+      - ./backend:/app          # Maps the current directory to /app inside the container
+    ports:
+      - 8305:8305
+    depends_on:
+      db:
+        condition: service_healthy  # Wait for MySQL to be healthy
+    env_file:
+      - backend/.env
+    networks:
+      - housepital-networks
+
+  # Streamlit 
+  housepital:
+    build: ./frontend
+    container_name: housepital_front
+    command: ["streamlit", "run", "main.py", "--server.port=8306", "--server.address=0.0.0.0"]
+    volumes:
+      - ./frontend:/app
+    ports:
+      - 8306:8306
+    env_file:
+      - frontend/.env
+    networks:
+      - housepital-networks
+
+  # Nginx Service
+  web: 
+    image: nginx
+    restart: unless-stopped
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/certs:/etc/ssl/certs/cloudflare/
+    ports:
+      - 80:80
+      - 443:443
+    networks: 
+      - housepital-networks
+
+networks:
+  housepital-networks:
+    driver: bridge

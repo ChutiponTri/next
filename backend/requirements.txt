@@ -1,0 +1,9 @@
+mysql-connector-python
+fastapi[standard]
+pydantic
+python-dotenv
+numpy
+pandas
+pillow
+torch
+torchvision
